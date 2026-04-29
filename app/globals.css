@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #0d1117;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 52% 10%, rgba(195, 184, 128, 0.09), transparent 24rem),
+    radial-gradient(circle at 20% 18%, rgba(88, 230, 210, 0.05), transparent 28rem),
+    linear-gradient(180deg, #10151c 0%, #0d1117 46%, #0b0f14 100%);
+  color: #f4f4f2;
+  font-family: "Space Mono", "Fira Code", "IBM Plex Mono", Consolas, ui-monospace, monospace;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(88, 230, 210, 0.25);
+}
+
+@layer components {
+  .shell {
+    @apply min-h-screen text-stone-100;
+  }
+
+  .topbar {
+    @apply flex h-[74px] items-center justify-between border-b border-white/5 bg-[#0d1117]/70 px-6 backdrop-blur md:px-8;
+  }
+
+  .brand {
+    @apply text-xl font-bold tracking-normal text-white md:text-2xl;
+  }
+
+  .brand-dot {
+    @apply text-teal;
+  }
+
+  .nav-link {
+    @apply rounded px-3 py-2 text-sm text-muted transition hover:text-white;
+  }
+
+  .nav-link-active {
+    @apply text-white;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line px-5 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply border-teal/50 bg-teal text-[#07100f] shadow-glow hover:bg-[#70f3e2];
+  }
+
+  .btn-ghost {
+    @apply bg-white/[0.02] text-stone-200 hover:border-teal/40 hover:text-teal;
+  }
+
+  .btn-danger {
+    @apply border-redsoft/50 text-redsoft hover:bg-redsoft/10;
+  }
+
+  .panel {
+    @apply rounded-lg border border-line bg-panel/40 shadow-insetSoft;
+  }
+
+  .metric-card {
+    @apply panel p-5;
+  }
+
+  .metric-label {
+    @apply text-xs text-muted;
+  }
+
+  .metric-value {
+    @apply mt-3 text-3xl text-teal;
+  }
+
+  .gold-value {
+    @apply text-gold;
+  }
+
+  .red-value {
+    @apply text-redsoft;
+  }
+}
