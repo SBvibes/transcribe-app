@@ -12,11 +12,13 @@
 
 html {
   background: #0d1117;
+  overflow-x: hidden;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 52% 10%, rgba(195, 184, 128, 0.09), transparent 24rem),
     radial-gradient(circle at 20% 18%, rgba(88, 230, 210, 0.05), transparent 28rem),
@@ -40,11 +42,11 @@ textarea {
   }
 
   .topbar {
-    @apply flex h-[74px] items-center justify-between border-b border-white/5 bg-[#0d1117]/70 px-6 backdrop-blur md:px-8;
+    @apply flex min-h-[64px] items-center justify-between gap-3 border-b border-white/5 bg-[#0d1117]/70 px-4 py-3 backdrop-blur md:h-[74px] md:px-8 md:py-0;
   }
 
   .brand {
-    @apply text-xl font-bold tracking-normal text-white md:text-2xl;
+    @apply text-lg font-bold tracking-normal text-white md:text-2xl;
   }
 
   .brand-dot {
@@ -60,7 +62,7 @@ textarea {
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-md border border-line px-5 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-line px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-40 md:px-5;
   }
 
   .btn-primary {
@@ -80,7 +82,7 @@ textarea {
   }
 
   .metric-card {
-    @apply panel p-5;
+    @apply panel p-4 md:p-5;
   }
 
   .metric-label {
@@ -88,7 +90,7 @@ textarea {
   }
 
   .metric-value {
-    @apply mt-3 text-3xl text-teal;
+    @apply mt-2 text-2xl text-teal md:mt-3 md:text-3xl;
   }
 
   .gold-value {

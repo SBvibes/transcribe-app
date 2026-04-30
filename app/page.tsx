@@ -114,7 +114,7 @@ export default function Home() {
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
   const [recall, setRecall] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const typingAreaRef = useRef<HTMLDivElement>(null);
+  const typingAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const elapsed = startedAt ? ((finishedAt ?? now) - startedAt) / 1000 : 0;
   const stats = useMemo(() => calculateStats(passage, typed, elapsed), [passage, typed, elapsed]);
@@ -193,9 +193,14 @@ export default function Home() {
     setHistory([]);
   }
 
-  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+  function handleTypingInput(value: string) {
     if (screen !== "typing") return;
     if (!startedAt) setStartedAt(Date.now());
+    setTyped(value.slice(0, passage.length));
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (screen !== "typing") return;
 
     if (event.key === "Tab") {
       event.preventDefault();
@@ -207,18 +212,6 @@ export default function Home() {
       event.preventDefault();
       setFinishedAt(Date.now());
       setScreen("results");
-      return;
-    }
-
-    if (event.key === "Backspace") {
-      event.preventDefault();
-      setTyped((value) => value.slice(0, -1));
-      return;
-    }
-
-    if (event.key.length === 1 && typed.length < passage.length) {
-      event.preventDefault();
-      setTyped((value) => value + event.key);
     }
   }
 
@@ -247,6 +240,7 @@ export default function Home() {
           stats={stats}
           errors={errors}
           onKeyDown={handleKeyDown}
+          onInput={handleTypingInput}
           refObject={typingAreaRef}
           onReset={resetSession}
           onFinish={() => {
@@ -328,18 +322,18 @@ function PasteScreen({
   onSample: () => void;
 }) {
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-74px)] max-w-6xl flex-col items-center px-6 py-16 text-center">
+    <section className="mx-auto flex min-h-[calc(100vh-64px)] max-w-6xl flex-col items-center px-4 py-10 text-center sm:px-6 md:min-h-[calc(100vh-74px)] md:py-16">
       <div className="rounded-md border border-line bg-white/[0.02] px-4 py-2 text-xs font-bold text-teal">Type. Learn. Remember.</div>
-      <h1 className="mt-12 max-w-4xl text-4xl font-bold leading-tight text-white md:text-6xl">
+      <h1 className="mt-8 max-w-4xl text-3xl font-bold leading-tight text-white sm:text-4xl md:mt-12 md:text-6xl">
         Type it. Learn it. <span className="text-gold">Remember it.</span>
       </h1>
-      <p className="mt-8 max-w-3xl text-base leading-7 text-muted">
+      <p className="mt-6 max-w-3xl text-sm leading-7 text-muted sm:text-base md:mt-8">
         Paste your notes, textbooks, or articles. Type them out to improve your skills while actively processing what you read.
       </p>
 
       <div className="panel mt-8 w-full max-w-4xl p-4 text-left">
         <textarea
-          className="min-h-56 w-full resize-none bg-transparent p-2 text-base leading-7 text-white outline-none placeholder:text-muted"
+          className="min-h-44 w-full resize-none bg-transparent p-2 text-base leading-7 text-white outline-none placeholder:text-muted sm:min-h-56"
           value={sourceText}
           onChange={(event) => setSourceText(event.target.value)}
           placeholder="Paste your text here..."
@@ -348,19 +342,19 @@ function PasteScreen({
           <span>
             {charCount} characters / {wordCount} words
           </span>
-          <div className="flex gap-3">
+          <div className="grid w-full gap-3 sm:flex sm:w-auto">
             <button className="btn btn-ghost px-4 py-2" onClick={onSample}>
               Try Sample
             </button>
             <button className="btn btn-primary px-4 py-2" disabled={!charCount} onClick={onStart}>
-              Start Typing →
+              Start Typing -&gt;
             </button>
           </div>
         </div>
       </div>
 
       <p className="mt-5 text-xs text-muted">Your text stays private and never leaves your device.</p>
-      <div className="mt-14 grid w-full max-w-5xl gap-6 text-left sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid w-full max-w-5xl gap-6 text-left sm:mt-14 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Improve Typing Speed", "Track WPM and accuracy in real time."],
           ["Learn Actively", "Reinforce ideas by typing what you read."],
@@ -383,6 +377,7 @@ function TypingScreen({
   stats,
   errors,
   onKeyDown,
+  onInput,
   refObject,
   onReset,
   onFinish
@@ -391,14 +386,15 @@ function TypingScreen({
   typed: string;
   stats: Stats;
   errors: ErrorMark[];
-  onKeyDown: (event: React.KeyboardEvent<HTMLDivElement>) => void;
-  refObject: React.RefObject<HTMLDivElement | null>;
+  onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  onInput: (value: string) => void;
+  refObject: React.RefObject<HTMLTextAreaElement | null>;
   onReset: () => void;
   onFinish: () => void;
 }) {
   return (
-    <section className="px-6 py-12 md:px-12">
-      <div className="flex items-center gap-6">
+    <section className="px-4 py-8 sm:px-6 md:px-12 md:py-12">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-6">
         <span className="text-sm font-bold text-white">Progress</span>
         <span className="text-gold">{stats.progress}%</span>
         <div className="h-2 flex-1 rounded-full bg-white/10">
@@ -408,15 +404,24 @@ function TypingScreen({
         <span className="text-teal">{formatTime(stats.elapsed)}</span>
       </div>
 
-      <div className="mt-16 grid gap-10 lg:grid-cols-[1fr_220px]">
+      <div className="mt-10 grid gap-8 md:mt-16 lg:grid-cols-[1fr_220px]">
         <div
-          ref={refObject}
-          tabIndex={0}
-          onKeyDown={onKeyDown}
-          className="min-h-[420px] cursor-text outline-none"
-          aria-label="Typing area"
+          className="relative min-h-[300px] cursor-text outline-none md:min-h-[420px]"
+          onClick={() => refObject.current?.focus()}
         >
-          <div className="max-w-5xl text-2xl leading-[2.05] tracking-normal md:text-3xl">
+          <textarea
+            ref={refObject}
+            value={typed}
+            onChange={(event) => onInput(event.target.value)}
+            onKeyDown={onKeyDown}
+            aria-label="Typing input"
+            autoCapitalize="none"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="absolute inset-0 z-10 h-full w-full resize-none bg-transparent text-base text-transparent caret-teal opacity-0 outline-none"
+          />
+          <div className="pointer-events-none max-w-5xl text-lg leading-[1.9] tracking-normal sm:text-xl md:text-3xl md:leading-[2.05]">
             {passage.split("").map((char, index) => {
               const typedChar = typed[index];
               const isTyped = index < typed.length;
@@ -436,9 +441,10 @@ function TypingScreen({
               );
             })}
           </div>
+          <p className="pointer-events-none mt-6 text-xs text-muted md:hidden">Tap the passage and use your keyboard to type.</p>
         </div>
 
-        <aside className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+        <aside className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-1">
           <Metric label="WPM" value={stats.wpm} />
           <Metric label="Accuracy" value={`${stats.accuracy}%`} gold />
           <Metric label="Characters" value={`${stats.typed} / ${passage.length}`} small />
@@ -446,7 +452,7 @@ function TypingScreen({
         </aside>
       </div>
 
-      <div className="mt-10 flex items-center justify-between text-sm text-muted">
+      <div className="mt-8 grid gap-3 text-sm text-muted sm:flex sm:items-center sm:justify-between">
         <button className="btn btn-ghost px-4 py-2" onClick={onReset}>
           Tab to reset
         </button>
@@ -475,14 +481,14 @@ function ResultsScreen({
 }) {
   const uniqueErrors = errors.slice(0, 8);
   return (
-    <section className="mx-auto max-w-7xl px-6 py-12">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-12">
       <div className="text-center">
         <p className="text-sm font-bold text-teal">Great work. You completed the session.</p>
-        <h1 className="mt-5 text-5xl font-bold text-white">Test Complete</h1>
+        <h1 className="mt-5 text-4xl font-bold text-white sm:text-5xl">Test Complete</h1>
         <p className="mt-5 text-muted">You typed {stats.typed} characters in {formatTime(stats.elapsed)}.</p>
       </div>
 
-      <div className="mt-10 grid gap-5 md:grid-cols-3 xl:grid-cols-6">
+      <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5 xl:grid-cols-6">
         <Metric label="WPM" value={stats.wpm} />
         <Metric label="Accuracy" value={`${stats.accuracy}%`} gold />
         <Metric label="Characters" value={stats.typed} />
@@ -492,11 +498,11 @@ function ResultsScreen({
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.7fr]">
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <h2 className="text-base font-bold text-white">Passage Review</h2>
           <p className="mt-5 max-h-48 overflow-auto text-sm leading-7 text-muted">{passage}</p>
         </div>
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold text-white">Error Review</h2>
             <span className="text-sm text-redsoft">{errors.length} errors found</span>
@@ -504,10 +510,10 @@ function ResultsScreen({
           <div className="mt-5 space-y-3">
             {uniqueErrors.length ? (
               uniqueErrors.map((error) => (
-                <div key={`${error.index}-${error.actual}`} className="rounded-md border border-line bg-white/[0.02] p-4 text-sm">
+                <div key={`${error.index}-${error.actual}`} className="flex flex-wrap items-center gap-2 rounded-md border border-line bg-white/[0.02] p-4 text-sm">
                   <span className="mr-4 rounded border border-line px-2 py-1 text-muted">{error.index + 1}</span>
                   <span className="text-redsoft">{error.actual || "blank"}</span>
-                  <span className="mx-5 text-muted">→</span>
+                  <span className="mx-3 text-muted sm:mx-5">-&gt;</span>
                   <span className="text-white">{error.expected || "space"}</span>
                   <span className="ml-4 text-muted">in {error.word}</span>
                 </div>
@@ -519,7 +525,7 @@ function ResultsScreen({
         </div>
       </div>
 
-      <div className="panel mt-8 flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-end">
+      <div className="panel mt-8 grid gap-3 p-4 sm:flex sm:items-center sm:justify-end sm:p-6">
         <button className="btn btn-ghost" onClick={onPractice}>
           Back to Practice
         </button>
@@ -527,7 +533,7 @@ function ResultsScreen({
           Start New Session
         </button>
         <button className="btn btn-primary" onClick={onRecall}>
-          Continue to Recall →
+          Continue to Recall -&gt;
         </button>
       </div>
     </section>
@@ -548,7 +554,7 @@ function RecallScreen({
   onSubmit: () => void;
 }) {
   return (
-    <section className="mx-auto max-w-5xl px-6 py-12 text-center">
+    <section className="mx-auto max-w-5xl px-4 py-10 text-center sm:px-6 md:py-12">
       <div className="flex items-center gap-6 text-left">
         <span className="font-bold text-white">Study & Recall</span>
         <span className="text-gold">3/3</span>
@@ -559,15 +565,15 @@ function RecallScreen({
         <span className="text-teal">100%</span>
       </div>
 
-      <h1 className="mt-16 text-4xl font-bold text-white">Let&apos;s make it stick.</h1>
+      <h1 className="mt-12 text-3xl font-bold text-white sm:text-4xl md:mt-16">Let&apos;s make it stick.</h1>
       <p className="mt-5 text-muted">Answer the question below to reinforce what you&apos;ve learned.</p>
 
-      <div className="panel mt-10 p-6 text-left">
+      <div className="panel mt-8 p-4 text-left sm:mt-10 sm:p-6">
         <p className="text-sm font-bold text-teal">Reflection Question</p>
-        <h2 className="mt-6 text-2xl font-bold leading-relaxed text-white">What is the main idea of the passage you just typed?</h2>
+        <h2 className="mt-5 text-xl font-bold leading-relaxed text-white sm:mt-6 sm:text-2xl">What is the main idea of the passage you just typed?</h2>
         <p className="mt-2 text-muted">Summarize the key point in your own words.</p>
         <textarea
-          className="mt-6 min-h-44 w-full resize-none rounded-md border border-teal/50 bg-transparent p-5 text-white outline-none placeholder:text-muted focus:border-teal"
+          className="mt-6 min-h-40 w-full resize-none rounded-md border border-teal/50 bg-transparent p-4 text-white outline-none placeholder:text-muted focus:border-teal sm:min-h-44 sm:p-5"
           value={recall}
           onChange={(event) => setRecall(event.target.value)}
           placeholder="Type your answer here..."
@@ -575,21 +581,21 @@ function RecallScreen({
         <div className="mt-5 flex flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
           <span>{recall.length} characters</span>
           <button className="btn btn-primary" disabled={!recall.trim()} onClick={onSubmit}>
-            Submit Answer →
+            Submit Answer -&gt;
           </button>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
         <Metric label="WPM" value={stats.wpm} />
         <Metric label="Accuracy" value={`${stats.accuracy}%`} gold />
         <Metric label="Errors" value={stats.errors} red />
         <Metric label="Time" value={formatTime(stats.elapsed)} />
       </div>
 
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 grid sm:flex sm:justify-end">
         <button className="btn btn-ghost" onClick={onBack}>
-          ← Back to Results
+          &lt;- Back to Results
         </button>
       </div>
     </section>
@@ -598,14 +604,14 @@ function RecallScreen({
 
 function HistoryScreen({ history, onClear, onNew }: { history: HistoryItem[]; onClear: () => void; onNew: () => void }) {
   return (
-    <section className="mx-auto max-w-6xl px-6 py-12">
+    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-12">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-bold text-teal">Saved locally</p>
           <h1 className="mt-3 text-4xl font-bold text-white">History</h1>
           <p className="mt-4 max-w-2xl text-muted">Review completed typing sessions and recall answers saved on this device.</p>
         </div>
-        <div className="flex gap-3">
+        <div className="grid w-full gap-3 sm:flex sm:w-auto">
           <button className="btn btn-ghost" onClick={onNew}>
             New Session
           </button>
@@ -618,7 +624,7 @@ function HistoryScreen({ history, onClear, onNew }: { history: HistoryItem[]; on
       <div className="mt-10 space-y-4">
         {history.length ? (
           history.map((item) => (
-            <article key={item.id} className="panel grid gap-5 p-5 md:grid-cols-[160px_1fr_220px]">
+            <article key={item.id} className="panel grid gap-5 p-4 sm:p-5 md:grid-cols-[160px_1fr_220px]">
               <div>
                 <p className="text-sm text-white">{new Date(item.timestamp).toLocaleDateString()}</p>
                 <p className="mt-2 text-xs text-muted">{new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
